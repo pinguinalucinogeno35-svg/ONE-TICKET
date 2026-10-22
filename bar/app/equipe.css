@@ -1,0 +1,26 @@
+/* ONE Ticket — equipe por função, áreas Bilheteria/Bar e resultado da festa */
+/* ---------- Equipe e áreas (Bilheteria / Bar) ---------- */
+.brand-group { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.area-tag {
+  font-family: var(--mono); font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+  color: var(--accent); border: 1px solid var(--accent); border-radius: 6px; padding: 3px 7px; white-space: nowrap;
+}
+.admin-bar { display: flex; align-items: flex-end; justify-content: space-between; gap: 8px 16px; flex-wrap: wrap; border-bottom: 1px solid var(--line); margin: 4px 0 24px; }
+.admin-bar .admin-nav { border-bottom: 0; margin: 0; min-width: 0; flex: 1 1 auto; }
+.admin-bar .who { padding: 0 2px 12px; white-space: nowrap; }
+.admin-nav a.admin-nav-out { display: inline-flex; align-items: center; gap: 6px; color: var(--accent); }
+.login-card { max-width: 420px; }
+.role-pill { font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .05em; padding: 3px 8px; border-radius: 999px; border: 1px solid var(--line-strong); color: var(--muted); white-space: nowrap; }
+.role-pill.bar { border-color: var(--accent); color: var(--accent); }
+.badge-lock { color: var(--warn-text); }
+.res-total { font-size: clamp(40px, 7vw, 72px); white-space: nowrap; }
+.split { display: flex; height: 14px; border-radius: 999px; overflow: hidden; background: var(--surface-2); margin-top: 14px; }
+.split > i { display: block; height: 100%; }
+.split .s-tk { background: var(--mark-2); }
+.split .s-bar { background: var(--accent); }
+.res-lines { display: grid; margin-top: 12px; }
+.res-lines div { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.res-lines div:last-child { border-bottom: 0; }
+.res-lines b { font-variant-numeric: tabular-nums; white-space: nowrap; }
+.grid-2 > *, .kpis > * { min-width: 0; }
+.input-row .input { min-width: 0; }
