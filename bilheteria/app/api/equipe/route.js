@@ -2,6 +2,7 @@ import { rpc } from '@/lib/db';
 import { errorResponse } from '@/lib/errors';
 import { apiRole, denied } from '@/lib/auth';
 import { ACCESS } from '@/lib/apps';
+import { currentSlug } from '@/lib/event';
 
 const ROLES = ['produtor', 'bilheteria', 'portaria', 'gerente_bar', 'caixa_bar'];
 
@@ -11,7 +12,7 @@ export async function POST(req) {
   try {
     const b = await req.json();
     const id = await rpc('api_staff_upsert', {
-      p_slug: process.env.EVENT_SLUG || 'festa-demo',
+      p_slug: await currentSlug(),
       p_id: b.id || null,
       p_name: String(b.name || '').slice(0, 60),
       p_login: String(b.login || '').slice(0, 30),
