@@ -214,6 +214,9 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
 .input[type="datetime-local"] { min-width: 0; max-width: 100%; -webkit-appearance: none; }
 ::-webkit-calendar-picker-indicator { filter: var(--picker-filter); }
 .input:disabled { opacity: .5; }
+textarea.input { height: auto; min-height: 96px; padding: 12px 14px; line-height: 1.5; resize: vertical; font-family: inherit; }
+.event-cover { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius-lg); border: 1px solid var(--line); background: var(--surface-2); }
+.prose { white-space: pre-line; line-height: 1.6; overflow-wrap: anywhere; }
 .input-row { display: flex; gap: 8px; }
 .btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 50px; padding: 0 22px;

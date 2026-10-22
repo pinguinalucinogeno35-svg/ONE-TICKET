@@ -1,5 +1,6 @@
 import { redirect } from 'next/navigation';
+import { currentSlug } from '@/lib/event';
 
-export default function Home() {
-  redirect(`/e/${process.env.EVENT_SLUG || 'festa-demo'}`);
+export default async function Home() {
+  redirect(`/e/${await currentSlug()}`);
 }
