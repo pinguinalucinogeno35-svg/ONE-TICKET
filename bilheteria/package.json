@@ -1,0 +1,19 @@
+{
+  "name": "ingressos-demo",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start"
+  },
+  "engines": { "node": ">=20" },
+  "dependencies": {
+    "@noble/ed25519": "^2.1.0",
+    "jsqr": "^1.4.0",
+    "next": "^15.1.0",
+    "qrcode": "^1.5.3",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
+  }
+}
