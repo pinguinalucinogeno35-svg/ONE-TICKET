@@ -100,6 +100,7 @@ export default function EventForm({ event = null, panel = null }) {
               <span className={`status ${EVENT_STATUS_CLASS[status]}`}>{EVENT_STATUS[status]}</span>
               {event.is_current && <span className="status active">Evento da noite</span>}
               {panel === event.slug && <span className="status">Aberto no painel</span>}
+              {event.listed === false && <span className="status">Fora da vitrine</span>}
             </div>
             <a href={`/e/${event.slug}`} target="_blank" rel="noopener" className="btn btn-ghost btn-sm">
               {status === 'draft' ? 'Ver prévia' : 'Ver página'}
@@ -140,6 +141,13 @@ export default function EventForm({ event = null, panel = null }) {
               <button type="button" className="btn btn-ghost btn-sm" disabled={busy}
                       onClick={() => run({ action: 'status', id: event.id, status: 'draft' }, 'Evento voltou para rascunho.')}>
                 Voltar para rascunho
+              </button>
+            )}
+            {status !== 'draft' && (
+              <button type="button" className="btn btn-ghost btn-sm" disabled={busy}
+                      onClick={() => run({ action: 'vitrine', id: event.id, listed: !event.listed },
+                        event.listed ? 'Evento fora da vitrine: só quem tem o link compra.' : 'Evento de volta na vitrine.')}>
+                {event.listed ? 'Tirar da vitrine' : 'Mostrar na vitrine'}
               </button>
             )}
             {!event.is_current && (

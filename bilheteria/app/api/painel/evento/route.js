@@ -54,6 +54,10 @@ export async function POST(req) {
         await rpc('api_event_set_status', { p_id: b.id, p_status: b.status, p_actor: me.name });
         return ok({ status: b.status });
       }
+      case 'vitrine': {
+        const r = await rpc('api_event_set_listed', { p_id: b.id, p_listed: !!b.listed, p_actor: me.name });
+        return ok({ listed: r.listed });
+      }
       case 'noite': {
         const r = await rpc('api_event_set_current', { p_id: b.id, p_actor: me.name });
         return ok({ slug: r.slug }, r.slug);

@@ -16,5 +16,5 @@ export default async function EditEventPage({ params }) {
   if (!UUID.test(id)) notFound();
   const event = await rpc('api_event_detail', { p_id: id });
   if (!event) notFound();
-  return <EventForm key={`${event.id}-${event.slug}-${event.status}-${event.capacity}`} event={event} panel={await panelSlug()} />;
+  return <EventForm key={`${event.id}-${event.slug}-${event.status}-${event.capacity}-${event.listed}`} event={event} panel={await panelSlug()} />;
 }

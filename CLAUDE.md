@@ -16,7 +16,7 @@ PWA para uma produtora de festas: venda de ingressos, portaria e controle do bar
 ```
 bilheteria/   Next.js 15 (App Router, JS puro) — ingressos, portaria, cupons, lotes, equipe, resultado
 bar/          Next.js 15 — PDV do bar, estoque, produtos, line-up, painel, resultado
-db/           Migrations SQL 001 a 006 (rodar em ordem) + db/testes (seeds e cenários)
+db/           Migrations SQL 001 a 007 (rodar em ordem) + db/testes (seeds e cenários)
 ```
 
 São **dois sistemas separados, dois deploys, mesmo banco** (Supabase Postgres). Arquivos compartilhados estão duplicados nas duas pastas e devem ficar idênticos: `lib/auth.js`, `lib/errors.js`, `lib/db.js`, `lib/event.js`, `lib/format.js`, `lib/money.js`, `lib/units.js`, `components/{Brand,AdminNav,AreaTag,MeContext,Icon,ThemeToggle,FestaResult}.js`, `app/{entrar,sem-acesso,resultado}/page.js`, `app/api/{login,logout}/route.js`, `app/globals.css`, `app/equipe.css`. O que muda entre os dois fica em `lib/apps.js` (APP, AREA, OTHER, ACCESS, HOME, NAV, RESULT_LINKS, LOGIN_TITLE).
@@ -33,6 +33,7 @@ São **dois sistemas separados, dois deploys, mesmo banco** (Supabase Postgres).
 - **Eventos** (migration 006, aba Eventos da Bilheteria, só produtor): cadastro e edição do evento (página pública, local, lotação, política de cancelamento, produtora), publicar/pausar/encerrar. Evento novo nasce rascunho e só abre vendas com lote ativo; rascunho só a equipe vê.
   - **Evento da noite**: guardado no banco (`private.app_config` `current_event`), usado pela portaria, pelo bar e pelo endereço principal (`currentSlug()` em `lib/event.js`). `EVENT_SLUG` virou só reserva.
   - **Evento do painel**: cookie `one_ev` neste aparelho (`panelSlug()`), para preparar a próxima festa sem mexer na operação.
+- **Vitrine** (migration 007, página inicial `/` da Bilheteria): lista os eventos publicados, próximos e os que já aconteceram, com busca, e um bloco para produtores. Rascunho nunca aparece; "Tirar da vitrine" (`events.listed`) esconde o evento, mas o link direto continua vendendo. Botão "Quero vender minha festa" usa `CONTATO_COMERCIAL` (e-mail ou WhatsApp); sem ele, não aparece.
 - **Resultado da festa** (`/resultado`, só produtor, nos dois sistemas): `api_festa_result` soma ingressos pagos + bar do mesmo evento.
 - **QR do ingresso**: assinado com Ed25519 (`TICKET_PRIVATE_KEY` / `TICKET_PUBLIC_KEY`), conferido offline na portaria.
 - **Offline**: PDV e portaria guardam fila em localStorage (com fallback em memória) e sincronizam de forma idempotente (`client_sale_id`, `client_scan_id`). Service worker em `public/sw.js`.
@@ -63,12 +64,13 @@ Cada pasta é um projeto Vercel. Em cada uma: `vercel --prod`. Mudou arquivo com
 
 ## Banco
 
-Supabase. Migrations em `db/001` a `db/006`. Para mudanças, crie `db/007_...sql` e aplique (Supabase SQL editor, CLI ou MCP). Evite `DELETE` em massa (deu timeout antes); prefira soft delete (ex.: `lineup.removed`).
+Supabase. Migrations em `db/001` a `db/007`. Para mudanças, crie `db/008_...sql` e aplique (Supabase SQL editor, CLI ou MCP). Evite `DELETE` em massa (deu timeout antes); prefira soft delete (ex.: `lineup.removed`).
 
 ## Pendências e riscos conhecidos
 
 - Desativar alguém não derruba a sessão na hora (até 12 h). Se o cliente exigir corte imediato: conferir `staff_users.active` a cada requisição.
 - O produtor faz login separado em cada domínio. Com domínio próprio (`bilheteria.[DOMÍNIO]`, `bar.[DOMÍNIO]`) dá para unificar o cookie.
+- Cadastro aberto de produtoras (várias produtoras, cada uma com sua conta e repasse) ainda não existe: hoje o produtor entra pelo login criado na tela Equipe.
 - Cancelar venda pelo painel do bar (hoje só pelo PDV do aparelho que vendeu).
 - Dados do bar são simulados (seed com 1.345 vendas); por isso o "gasto no bar por pessoa" na demo sai distorcido.
 - Faltam do cliente: `[TAXA DO MERCADO PAGO]`, `[TAXA DAS MAQUININHAS]`, `[CACHÊS, LOCAÇÃO, EQUIPE]`, `[DOMÍNIO]`, licença da fonte Neue Haas Grotesk.
@@ -83,3 +85,4 @@ Supabase. Migrations em `db/001` a `db/006`. Para mudanças, crie `db/007_...sql
 4. Versão tema claro (padrão) com escuro opcional.
 5. Separação em dois sistemas (Bilheteria e Bar) com login por função, tela Equipe e Resultado da festa (005).
 6. Cadastro de eventos pelo painel e evento da noite no banco (006).
+7. Vitrine pública de eventos na página inicial (007).
