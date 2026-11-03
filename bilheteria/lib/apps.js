@@ -13,12 +13,14 @@ export const ACCESS = {
   portaria: ['produtor', 'bilheteria', 'portaria'],
   resultado: ['produtor'],
   equipe: ['produtor'],
+  eventos: ['produtor'],
 };
 
 export const HOME = { produtor: '/painel', bilheteria: '/painel', portaria: '/portaria' };
 
 // Abas do painel, filtradas pela função de quem entrou
 export const NAV = [
+  { href: '/painel/eventos', label: 'Eventos', roles: ACCESS.eventos },
   { href: '/painel', label: 'Visão geral', roles: ACCESS.painel },
   { href: '/painel/lotes', label: 'Lotes e preços', roles: ACCESS.painel },
   { href: '/painel/cupons', label: 'Cupons', roles: ACCESS.painel },
@@ -31,7 +33,7 @@ export const OTHER_ROLES = ['produtor'];
 
 // O que cada função faz (tela Equipe). O cadastro de equipe vale para os dois sistemas.
 export const ROLE_DESC = {
-  produtor: 'Tudo, nos dois sistemas. Cria acessos e vê o resultado da festa.',
+  produtor: 'Tudo, nos dois sistemas. Cria eventos e acessos e vê o resultado da festa.',
   bilheteria: 'Bilheteria: visão geral, lotes, preços, cupons e portaria.',
   portaria: 'Bilheteria: só o leitor de QR da entrada.',
   gerente_bar: 'Bar: PDV, estoque, produtos, line-up e relatórios.',

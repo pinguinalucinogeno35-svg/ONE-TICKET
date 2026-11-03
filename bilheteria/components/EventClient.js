@@ -20,6 +20,22 @@ function calcDiscount(subtotal, coupon) {
   return 0;
 }
 
+const SALE_CHIP = { on_sale: 'Vendas abertas', paused: 'Vendas pausadas', closed: 'Vendas encerradas', draft: 'Prévia · rascunho' };
+const SALE_NOTE = {
+  paused: ['Vendas pausadas', 'A produção pausou as vendas por enquanto. Volte mais tarde.'],
+  closed: ['Vendas encerradas', 'As vendas online deste evento terminaram.'],
+  draft: ['Prévia', 'Este evento ainda não foi publicado. Só a equipe vê esta página.'],
+};
+const AGE_LABEL = { L: 'Livre para todas as idades', 10: 'Classificação 10 anos', 12: 'Classificação 12 anos', 14: 'Classificação 14 anos', 16: 'Classificação 16 anos', 18: 'Proibido para menores de 18 anos' };
+
+function contactHref(c) {
+  if (!c) return null;
+  if (c.includes('@')) return `mailto:${c}`;
+  const d = c.replace(/\D/g, '');
+  if (d.length >= 10) return `https://wa.me/${d.startsWith('55') ? d : `55${d}`}`;
+  return null;
+}
+
 export default function EventClient({ initial, accessCode, couponCode = null }) {
   const router = useRouter();
   const [event, setEvent] = useState(initial);
@@ -157,24 +173,45 @@ export default function EventClient({ initial, accessCode, couponCode = null }) 
     }
   }
 
-  const soldOut = event.available <= 0;
+  const onSale = event.status === 'on_sale';
+  const soldOut = onSale && event.available <= 0;
+  const canBuy = onSale && !soldOut;
+  const place = [event.venue_name, event.address, [event.city, event.state].filter(Boolean).join(' - ')].filter(Boolean);
+  const mapUrl = (event.address || event.city)
+    ? `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(place.join(', '))}` : null;
+  const contact = contactHref(event.contact);
 
   return (
     <main className="shell">
-      <Brand right={<span className="chip chip-accent"><span className="dot" />Vendas abertas</span>} />
+      <Brand right={<span className={`chip ${onSale ? 'chip-accent' : ''}`}>{onSale && <span className="dot" />}{SALE_CHIP[event.status]}</span>} />
 
+      {event.image_url && (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img src={event.image_url} alt="" className="event-cover mt-16" />
+      )}
       <section className="hero">
         <div className="row" style={{ gap: 8, flexWrap: 'wrap' }}>
           <span className="chip chip-accent">{dateLong(event.starts_at)}</span>
-          <span className="chip">{event.venue_name}</span>
+          {event.venue_name && <span className="chip">{event.venue_name}</span>}
         </div>
         <h1 className="display hero-title">
           {event.name.split(' ').slice(0, -1).join(' ')}
           <span>{event.name.split(' ').slice(-1)}</span>
         </h1>
-        <p className="eyebrow">Realização · Produtora Demo</p>
-        <p className="muted small mt-8">Classificação 18+. Ingresso digital com QR code, funciona sem internet.</p>
+        {event.producer_name && <p className="eyebrow">Realização · {event.producer_name}</p>}
+        <p className="muted small mt-8">
+          {event.ends_at && <>Até {dateLong(event.ends_at)}. </>}
+          {event.age_rating && <>{AGE_LABEL[event.age_rating]}. </>}
+          Ingresso digital com QR code, funciona sem internet.
+        </p>
       </section>
+
+      {SALE_NOTE[event.status] && (
+        <div className="card mt-16" style={{ textAlign: 'center' }}>
+          <p className="display" style={{ fontSize: 34 }}>{SALE_NOTE[event.status][0]}</p>
+          <p className="muted small mt-8">{SALE_NOTE[event.status][1]}</p>
+        </div>
+      )}
 
       {soldOut && (
         <div className="card card-accent mt-16" style={{ textAlign: 'center' }}>
@@ -183,7 +220,7 @@ export default function EventClient({ initial, accessCode, couponCode = null }) 
         </div>
       )}
 
-      {!soldOut && activeBatches.map((b) => {
+      {canBuy && activeBatches.map((b) => {
         const pct = Math.min(100, Math.round((b.taken / Math.max(1, b.quantity)) * 100));
         const hot = pct >= 85;
         const left = b.quantity - b.taken;
@@ -254,7 +291,7 @@ export default function EventClient({ initial, accessCode, couponCode = null }) 
         </>
       )}
 
-      {!soldOut && (
+      {canBuy && (
         <>
           <h2 className="section-title">Cupom</h2>
           <form className="input-row" onSubmit={applyCoupon}>
@@ -267,9 +304,47 @@ export default function EventClient({ initial, accessCode, couponCode = null }) 
         </>
       )}
 
+      {event.description && (
+        <>
+          <h2 className="section-title">Sobre o evento</h2>
+          <div className="card prose">{event.description}</div>
+        </>
+      )}
+
+      {place.length > 0 && (
+        <>
+          <h2 className="section-title">Local</h2>
+          <div className="card">
+            {event.venue_name && <p style={{ fontWeight: 700 }}>{event.venue_name}</p>}
+            {place.slice(event.venue_name ? 1 : 0).map((l) => <p key={l} className="muted small">{l}</p>)}
+            {mapUrl && <a href={mapUrl} target="_blank" rel="noopener" className="btn btn-ghost btn-sm mt-16">Abrir no mapa</a>}
+          </div>
+        </>
+      )}
+
+      {event.cancel_policy && (
+        <>
+          <h2 className="section-title">Cancelamento</h2>
+          <div className="card prose small">{event.cancel_policy}</div>
+        </>
+      )}
+
+      {(event.producer_name || event.producer_about || event.contact) && (
+        <>
+          <h2 className="section-title">Quem produz</h2>
+          <div className="card">
+            {event.producer_name && <p style={{ fontWeight: 700 }}>{event.producer_name}</p>}
+            {event.producer_about && <p className="prose muted small mt-8">{event.producer_about}</p>}
+            {event.contact && (contact
+              ? <a href={contact} target="_blank" rel="noopener" className="btn btn-ghost btn-sm mt-16">Fale com o produtor</a>
+              : <p className="small mt-8">Contato: {event.contact}</p>)}
+          </div>
+        </>
+      )}
+
       <p className="footer-note">ONE Ticket · demonstração · preços fictícios</p>
 
-      {!soldOut && (
+      {canBuy && (
         <div className="buybar">
           <div className="buybar-inner">
             <div className="buybar-total">

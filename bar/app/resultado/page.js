@@ -5,13 +5,14 @@ import { MeProvider } from '@/components/MeContext';
 import Brand from '@/components/Brand';
 import AdminNav from '@/components/AdminNav';
 import FestaResult from '@/components/FestaResult';
+import { panelSlug } from '@/lib/event';
 
 export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Resultado da festa · ONE Ticket' };
 
 export default async function ResultPage() {
   const me = await requireRole(ACCESS.resultado, '/resultado');
-  const data = await rpc('api_festa_result', { p_slug: process.env.EVENT_SLUG || 'festa-demo' });
+  const data = await rpc('api_festa_result', { p_slug: await panelSlug() });
   return (
     <MeProvider me={me}>
       <main className="shell-wide">
