@@ -60,7 +60,9 @@ Sem a Vercel CLI, crie `.env.local` a partir de `.env.example`.
 
 ## Deploy
 
-Cada pasta é um projeto Vercel. Em cada uma: `vercel --prod`. Mudou arquivo compartilhado? Copie para a outra pasta e publique as duas.
+Cada pasta é um projeto Vercel ligado a este repositório no GitHub (Root Directory `bilheteria` e `bar`). Todo merge na `main` publica os dois sozinho; branches e PRs geram prévia. Sem Git, dá para publicar com `vercel --prod` dentro da pasta. Mudou arquivo compartilhado? Copie para a outra pasta: as duas publicam juntas.
+
+Migração nova vai para o Supabase **antes** do merge, senão o código novo sobe chamando função que ainda não existe.
 
 ## Banco
 
