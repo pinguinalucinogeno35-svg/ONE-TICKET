@@ -1,7 +1,7 @@
 // ONE Ticket — sistema do Bar. A Bilheteria é outro sistema, no mesmo banco.
 export const APP = 'bar';
 export const AREA = 'Bar';
-export const OTHER = { label: 'Bilheteria', url: 'https://ingressos-demo.vercel.app' };
+export const OTHER = { label: 'Bilheteria', url: 'https://one-ticket-bilheteria.vercel.app' };
 
 export const ROLE_LABEL = {
   produtor: 'Produtor', bilheteria: 'Bilheteria', portaria: 'Portaria', gerente_bar: 'Gerente do bar', caixa_bar: 'Caixa do bar',
