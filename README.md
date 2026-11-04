@@ -4,8 +4,8 @@ Dois sistemas separados, mesmo banco (Supabase).
 
 | Sistema | Pasta | Endereço | Quem entra |
 |---|---|---|---|
-| Bilheteria | `bilheteria/` | https://ingressos-demo.vercel.app | produtor, bilheteria, portaria |
-| Bar | `bar/` | https://one-ticket-bar.vercel.app | produtor, gerente_bar, caixa_bar |
+| Bilheteria | `bilheteria/` | https://one-ticket-bilheteria.vercel.app | produtor, bilheteria, portaria |
+| Bar | `bar/` | https://one-ticket-bar-sooty.vercel.app | produtor, gerente_bar, caixa_bar |
 
 - Login por função (`/entrar`), cada pessoa com sua senha. Cadastro em Bilheteria > Equipe (só o produtor).
 - Sessão: cookie assinado (HMAC, `COOKIE_SECRET`), 12 h. Permissão conferida no servidor em cada página e rota.
