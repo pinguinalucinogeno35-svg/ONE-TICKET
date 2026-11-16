@@ -36,7 +36,7 @@ function contactHref(c) {
   return null;
 }
 
-export default function EventClient({ initial, accessCode, couponCode = null }) {
+export default function EventClient({ initial, accessCode, couponCode = null, gallery = [] }) {
   const router = useRouter();
   const [event, setEvent] = useState(initial);
   const [cart, setCart] = useState({});
@@ -308,6 +308,20 @@ export default function EventClient({ initial, accessCode, couponCode = null }) 
         <>
           <h2 className="section-title">Sobre o evento</h2>
           <div className="card prose">{event.description}</div>
+        </>
+      )}
+
+      {gallery.length > 0 && (
+        <>
+          <h2 className="section-title">Fotos</h2>
+          <div className="photo-grid">
+            {gallery.map((g) => (
+              <a key={g.id} href={`/imagem/${g.id}`} target="_blank" rel="noopener" className="photo-item" aria-label="Abrir foto">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={`/imagem/${g.id}`} alt="" loading="lazy" />
+              </a>
+            ))}
+          </div>
         </>
       )}
 

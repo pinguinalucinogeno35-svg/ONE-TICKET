@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import Brand from './Brand';
 import AdminNav from './AdminNav';
+import EventImages from './EventImages';
 import { EVENT_STATUS, EVENT_STATUS_CLASS, eventAction } from './EventsAdmin';
 import { toLocalInput, fromLocalInput } from '@/lib/money';
 
@@ -218,11 +219,11 @@ export default function EventForm({ event = null, panel = null }) {
 
         <h2 className="section-title">Página do evento</h2>
         <div className="card">
-          <div className="field"><label htmlFor="ev-img">Imagem de capa (link https)</label>
-            <input id="ev-img" className="input" type="url" inputMode="url" value={f.image_url} onChange={set('image_url')} maxLength={500} placeholder="https://…" /></div>
-          {/^https:\/\//.test(f.image_url) && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={f.image_url} alt="Prévia da capa" className="event-cover mt-16" />
+          {event ? (
+            <EventImages eventId={event.id} coverUrl={f.image_url} notify={notify}
+                         onCover={(url) => setF((old) => ({ ...old, image_url: url }))} />
+          ) : (
+            <p className="small muted">Depois de criar o evento, você envia a capa e as fotos aqui.</p>
           )}
           <div className="field mt-16"><label htmlFor="ev-desc">Descrição</label>
             <textarea id="ev-desc" className="input" rows={7} value={f.description} onChange={set('description')} maxLength={6000}

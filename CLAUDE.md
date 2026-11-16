@@ -34,6 +34,7 @@ São **dois sistemas separados, dois deploys, mesmo banco** (Supabase Postgres).
   - **Evento da noite**: guardado no banco (`private.app_config` `current_event`), usado pela portaria, pelo bar e pelo endereço principal (`currentSlug()` em `lib/event.js`). `EVENT_SLUG` virou só reserva.
   - **Evento do painel**: cookie `one_ev` neste aparelho (`panelSlug()`), para preparar a próxima festa sem mexer na operação.
 - **Vitrine** (migration 007, página inicial `/` da Bilheteria): lista os eventos publicados, próximos e os que já aconteceram, com busca, e um bloco para produtores. Rascunho nunca aparece; "Tirar da vitrine" (`events.listed`) esconde o evento, mas o link direto continua vendendo. Botão "Quero vender minha festa" usa `CONTATO_COMERCIAL` (e-mail ou WhatsApp); sem ele, não aparece.
+- **Imagens do evento** (migration 008, aba Eventos): capa e galeria (até 12 fotos) enviadas pelo painel, reduzidas no navegador (1600 px, JPEG) e guardadas no banco (`event_images`, bytea, soft delete). Servidas em `/imagem/<id>` com cache longo; a capa vira `events.image_url`. A página do evento mostra a seção Fotos.
 - **Resultado da festa** (`/resultado`, só produtor, nos dois sistemas): `api_festa_result` soma ingressos pagos + bar do mesmo evento.
 - **QR do ingresso**: assinado com Ed25519 (`TICKET_PRIVATE_KEY` / `TICKET_PUBLIC_KEY`), conferido offline na portaria.
 - **Offline**: PDV e portaria guardam fila em localStorage (com fallback em memória) e sincronizam de forma idempotente (`client_sale_id`, `client_scan_id`). Service worker em `public/sw.js`.
@@ -66,7 +67,7 @@ Migração nova vai para o Supabase **antes** do merge, senão o código novo so
 
 ## Banco
 
-Supabase. Migrations em `db/001` a `db/007`. Para mudanças, crie `db/008_...sql` e aplique (Supabase SQL editor, CLI ou MCP). Evite `DELETE` em massa (deu timeout antes); prefira soft delete (ex.: `lineup.removed`).
+Supabase. Migrations em `db/001` a `db/008`. Para mudanças, crie `db/009_...sql` e aplique (Supabase SQL editor, CLI ou MCP). Evite `DELETE` em massa (deu timeout antes); prefira soft delete (ex.: `lineup.removed`).
 
 ## Pendências e riscos conhecidos
 
@@ -88,3 +89,4 @@ Supabase. Migrations em `db/001` a `db/007`. Para mudanças, crie `db/008_...sql
 5. Separação em dois sistemas (Bilheteria e Bar) com login por função, tela Equipe e Resultado da festa (005).
 6. Cadastro de eventos pelo painel e evento da noite no banco (006).
 7. Vitrine pública de eventos na página inicial (007).
+8. Envio de capa e galeria de fotos do evento pelo painel (008).

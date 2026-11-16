@@ -33,5 +33,7 @@ export default async function EventPage({ params, searchParams }) {
     const me = await getMe();
     if (!me || !ACCESS.painel.includes(me.role)) notFound();
   }
-  return <EventClient initial={event} accessCode={code} couponCode={coupon} />;
+  const images = await rpc('api_event_images', { p_event_id: event.id }).catch(() => []);
+  const gallery = Array.isArray(images) ? images.filter((i) => i.kind === 'gallery') : [];
+  return <EventClient initial={event} accessCode={code} couponCode={coupon} gallery={gallery} />;
 }

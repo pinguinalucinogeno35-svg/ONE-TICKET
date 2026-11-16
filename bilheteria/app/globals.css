@@ -216,6 +216,20 @@ select.input { appearance: none; background-image: linear-gradient(45deg, transp
 .input:disabled { opacity: .5; }
 textarea.input { height: auto; min-height: 96px; padding: 12px 14px; line-height: 1.5; resize: vertical; font-family: inherit; }
 .event-cover { display: block; width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border-radius: var(--radius-lg); border: 1px solid var(--line); background: var(--surface-2); }
+
+/* Imagens do evento: envio no painel e galeria na página pública */
+.image-slot { position: relative; }
+.image-slot img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); }
+.image-slot .event-cover { aspect-ratio: 16 / 9; border-radius: var(--radius-lg); }
+.image-remove { position: absolute; top: 8px; right: 8px; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 999px; border: 1px solid var(--line); background: var(--bg); color: var(--text); cursor: pointer; }
+.image-remove:hover { color: #D93025; }
+.image-drop { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; width: 100%; aspect-ratio: 16 / 9; border: 1.5px dashed var(--line); border-radius: var(--radius-lg); background: var(--surface-2); color: var(--accent); font: inherit; font-weight: 600; cursor: pointer; text-align: center; padding: 12px; }
+.image-drop:disabled, .image-remove:disabled { opacity: .55; cursor: default; }
+.image-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 10px; }
+.image-drop.image-add { aspect-ratio: 1; border-radius: 12px; font-size: 13px; }
+.photo-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.photo-item { display: block; }
+.photo-item img { display: block; width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 12px; border: 1px solid var(--line); background: var(--surface-2); }
 .prose { white-space: pre-line; line-height: 1.6; overflow-wrap: anywhere; }
 /* Vitrine (página inicial) */
 .showcase-hero { margin-top: 8px; }

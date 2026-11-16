@@ -1,6 +1,23 @@
 // Ícones próprios do ONE Ticket (nunca emoji ou glifo de texto).
 // Grade 24, traço 2, pontas arredondadas, cor = currentColor.
 const PATHS = {
+  // imagem: moldura com montanha e sol
+  image: (
+    <>
+      <rect x="3.5" y="4.5" width="17" height="15" rx="2.5" />
+      <circle cx="9" cy="10" r="1.6" />
+      <path d="M4 17.5l4.6-4.6a1.6 1.6 0 0 1 2.3 0l1.6 1.6 2.4-2.4a1.6 1.6 0 0 1 2.3 0l3.3 3.3" />
+    </>
+  ),
+  // remover: lixeira
+  trash: (
+    <>
+      <path d="M4.5 7h15" />
+      <path d="M9.5 7V5.2c0-.7.5-1.2 1.2-1.2h2.6c.7 0 1.2.5 1.2 1.2V7" />
+      <path d="M6.5 7l.8 11.6a1.6 1.6 0 0 0 1.6 1.4h6.2a1.6 1.6 0 0 0 1.6-1.4L17.5 7" />
+      <path d="M10.2 10.8v5.4M13.8 10.8v5.4" />
+    </>
+  ),
   plus: <path d="M12 5.5v13M5.5 12h13" />,
   minus: <path d="M5.5 12h13" />,
   edit: (
