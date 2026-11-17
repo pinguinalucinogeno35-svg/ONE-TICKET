@@ -57,6 +57,16 @@ function BatchForm({ batch, onDone }) {
     setBusy(false);
   }
 
+  async function remove() {
+    const aviso = batch.status === 'active' ? ' Ele está à venda agora: o próximo lote agendado desta trilha abre na hora.' : '';
+    if (!confirm(`Apagar o ${batch.name}?${aviso} Não dá para desfazer.`)) return;
+    setBusy(true);
+    try {
+      const r = await act({ action: 'lote_apagar', batchId: batch.id });
+      onDone(r.openedNext ? `${batch.name} apagado. O próximo lote abriu.` : `${batch.name} apagado.`);
+    } catch (err) { onDone(err.message, true); setBusy(false); }
+  }
+
   return (
     <form className="card" onSubmit={save}>
       <div className="row between" style={{ flexWrap: 'wrap' }}>
@@ -92,8 +102,14 @@ function BatchForm({ batch, onDone }) {
           }} />
           Meia = 50% da inteira
         </label>
-        <button className="btn btn-accent btn-sm" disabled={!changed || busy}>{busy ? 'Salvando…' : 'Salvar lote'}</button>
+        <div className="row" style={{ gap: 8 }}>
+          {batch.can_delete && (
+            <button type="button" className="btn btn-ghost btn-sm btn-danger" disabled={busy} onClick={remove}>Apagar lote</button>
+          )}
+          <button className="btn btn-accent btn-sm" disabled={!changed || busy}>{busy ? 'Salvando…' : 'Salvar lote'}</button>
+        </div>
       </div>
+      {!batch.can_delete && <p className="tiny muted mt-8">Este lote já tem vendas ou reservas: não pode ser apagado, só editado.</p>}
     </form>
   );
 }
