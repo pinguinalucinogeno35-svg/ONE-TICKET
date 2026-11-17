@@ -1,5 +1,5 @@
 -- =============================================================================
--- 010: apagar lote mesmo com vendas (ex.: lote de teste, promoção que acabou)
+-- 011: apagar lote mesmo com vendas (ex.: lote de teste, promoção que acabou)
 -- Só bloqueia se houver reserva em andamento (alguém pagando agora).
 -- Lote com venda vira removido (soft delete): some do painel e da página do
 -- evento, mas os pedidos e ingressos já vendidos continuam valendo na portaria
