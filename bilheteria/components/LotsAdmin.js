@@ -58,8 +58,11 @@ function BatchForm({ batch, onDone }) {
   }
 
   async function remove() {
+    const vendas = batch.sold > 0
+      ? ` Ele tem ${batch.sold} ${batch.sold === 1 ? 'ingresso vendido, que continua valendo' : 'ingressos vendidos, que continuam valendo'} na portaria e no faturamento.`
+      : '';
     const aviso = batch.status === 'active' ? ' Ele está à venda agora: o próximo lote agendado desta trilha abre na hora.' : '';
-    if (!confirm(`Apagar o ${batch.name}?${aviso} Não dá para desfazer.`)) return;
+    if (!confirm(`Apagar o ${batch.name}?${vendas}${aviso} Não dá para desfazer.`)) return;
     setBusy(true);
     try {
       const r = await act({ action: 'lote_apagar', batchId: batch.id });
@@ -109,7 +112,7 @@ function BatchForm({ batch, onDone }) {
           <button className="btn btn-accent btn-sm" disabled={!changed || busy}>{busy ? 'Salvando…' : 'Salvar lote'}</button>
         </div>
       </div>
-      {!batch.can_delete && <p className="tiny muted mt-8">Este lote já tem vendas ou reservas: não pode ser apagado, só editado.</p>}
+      {!batch.can_delete && <p className="tiny muted mt-8">Alguém está pagando um ingresso deste lote agora. Dá para apagar quando a reserva terminar.</p>}
     </form>
   );
 }

@@ -233,7 +233,7 @@ export default function EventClient({ initial, accessCode, couponCode = null, ga
           <section key={b.id} className={`card mt-16 ${isPromo || isLounge ? 'card-accent' : ''}`}>
             <div className="lot-head">
               <div>
-                <p className="eyebrow">{isLounge ? 'Lounge · à venda até esgotar' : isPromo ? 'Liberado pelo seu link' : 'À venda agora'}</p>
+                <p className="eyebrow">{isLounge ? 'Lounge · à venda até esgotar' : isPromo ? (b.visibility === 'link' ? 'Liberado pelo seu link' : 'Promoção') : 'À venda agora'}</p>
                 <p className="lot-name mt-8">{b.name}</p>
               </div>
               <span className="chip">{pct}% vendido</span>
