@@ -7,6 +7,8 @@ import { brl } from '@/lib/format';
 import { toCents, fromCents, toLocalInput, fromLocalInput } from '@/lib/money';
 
 const STATUS = { active: 'À venda', scheduled: 'Agendado', sold_out: 'Esgotado', closed: 'Encerrado' };
+const MEIA_LEI = 'Lei 12.933/2013: 40% dos ingressos do evento precisam ter meia-entrada. Lote sem meia só vale se os outros lotes cobrirem a cota.';
+
 const TRACK = { principal: 'Lotes principais', promocional: 'Promocional', lounge: 'Lounge', casadinha: 'Casadinha' };
 
 async function act(payload) {
@@ -26,6 +28,8 @@ function BatchForm({ batch, onDone }) {
     name: batch.name, quantity: String(batch.quantity), endsAt: toLocalInput(batch.ends_at),
     inteira: priceOf(batch, 'inteira'), meia: priceOf(batch, 'meia'), casadinha: priceOf(batch, 'casadinha'),
   });
+  const hadMeia = !!batch.offers.find((x) => x.variant === 'meia');
+  const [noMeia, setNoMeia] = useState(!hadMeia);
   const [autoMeia, setAutoMeia] = useState(() => {
     const i = toCents(priceOf(batch, 'inteira')); const m = toCents(priceOf(batch, 'meia'));
     return i !== null && m !== null && Math.floor(i / 2) === m;
@@ -42,7 +46,8 @@ function BatchForm({ batch, onDone }) {
     });
   };
   const changed = f.name !== batch.name || f.quantity !== String(batch.quantity) || f.endsAt !== toLocalInput(batch.ends_at)
-    || ['inteira', 'meia', 'casadinha'].some((v) => f[v] !== priceOf(batch, v));
+    || ['inteira', 'casadinha'].some((v) => f[v] !== priceOf(batch, v))
+    || noMeia !== !hadMeia || (!noMeia && f.meia !== priceOf(batch, 'meia'));
 
   async function save(e) {
     e.preventDefault();
@@ -50,7 +55,9 @@ function BatchForm({ batch, onDone }) {
     try {
       await act({
         action: 'lote_salvar', batchId: batch.id, name: f.name, quantity: f.quantity, endsAt: fromLocalInput(f.endsAt),
-        prices: { inteira: toCents(f.inteira), meia: toCents(f.meia), casadinha: toCents(f.casadinha) },
+        prices: { inteira: toCents(f.inteira), meia: noMeia ? null : toCents(f.meia), casadinha: toCents(f.casadinha) },
+        // tira do lote a modalidade desmarcada ou apagada
+        remove: [noMeia && hadMeia && 'meia', !f.casadinha.trim() && priceOf(batch, 'casadinha') && 'casadinha'].filter(Boolean),
       });
       onDone(`${f.name} salvo.`);
     } catch (err) { onDone(err.message, true); }
@@ -91,17 +98,28 @@ function BatchForm({ batch, onDone }) {
       </div>
       <div className="grid-form mt-16">
         <div className="field"><label>Inteira</label><div className="price-input"><input className="input" inputMode="decimal" value={f.inteira} onChange={set('inteira')} required /></div></div>
-        <div className="field"><label>Meia-entrada</label><div className="price-input"><input className="input" inputMode="decimal" value={f.meia} onChange={set('meia')} disabled={autoMeia} placeholder="sem meia" /></div></div>
+        <div className="field"><label>Meia-entrada</label><div className="price-input"><input className="input" inputMode="decimal" value={noMeia ? '' : f.meia} onChange={set('meia')} disabled={autoMeia || noMeia} placeholder="sem meia" /></div></div>
         <div className="field"><label>Casadinha (2 pessoas)</label><div className="price-input"><input className="input" inputMode="decimal" value={f.casadinha} onChange={set('casadinha')} placeholder="sem casadinha" /></div></div>
       </div>
       <div className="row between mt-16" style={{ flexWrap: 'wrap' }}>
-        <label className="check">
-          <input type="checkbox" checked={autoMeia} onChange={(e) => {
-            setAutoMeia(e.target.checked);
-            if (e.target.checked) { const c = toCents(f.inteira); setF((o) => ({ ...o, meia: c === null ? '' : fromCents(Math.floor(c / 2)) })); }
-          }} />
-          Meia = 50% da inteira
-        </label>
+        <div className="row" style={{ gap: 16, flexWrap: 'wrap' }}>
+          <label className="check">
+            <input type="checkbox" checked={noMeia} onChange={(e) => {
+              setNoMeia(e.target.checked);
+              if (!e.target.checked && !f.meia) { const c = toCents(f.inteira); setAutoMeia(true); setF((o) => ({ ...o, meia: c === null ? '' : fromCents(Math.floor(c / 2)) })); }
+            }} />
+            Sem meia-entrada
+          </label>
+          {!noMeia && (
+            <label className="check">
+              <input type="checkbox" checked={autoMeia} onChange={(e) => {
+                setAutoMeia(e.target.checked);
+                if (e.target.checked) { const c = toCents(f.inteira); setF((o) => ({ ...o, meia: c === null ? '' : fromCents(Math.floor(c / 2)) })); }
+              }} />
+              Meia = 50% da inteira
+            </label>
+          )}
+        </div>
         <div className="row" style={{ gap: 8 }}>
           {batch.can_delete && (
             <button type="button" className="btn btn-ghost btn-sm btn-danger" disabled={busy} onClick={remove}>Apagar lote</button>
@@ -109,13 +127,14 @@ function BatchForm({ batch, onDone }) {
           <button className="btn btn-accent btn-sm" disabled={!changed || busy}>{busy ? 'Salvando…' : 'Salvar lote'}</button>
         </div>
       </div>
+      {noMeia && hadMeia && <p className="tiny muted mt-8">Ao salvar, a meia sai deste lote. {MEIA_LEI}</p>}
       {!batch.can_delete && <p className="tiny muted mt-8">Este lote já tem vendas ou reservas: não pode ser apagado, só editado.</p>}
     </form>
   );
 }
 
 function NewBatch({ eventId, onDone }) {
-  const empty = { track: 'principal', name: '', quantity: '', inteira: '', casadinha: '', endsAt: '', visibility: 'public', accessCode: '' };
+  const empty = { track: 'principal', name: '', quantity: '', inteira: '', casadinha: '', endsAt: '', visibility: 'public', accessCode: '', noMeia: false };
   const [f, setF] = useState(empty);
   const [busy, setBusy] = useState(false);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
@@ -129,7 +148,7 @@ function NewBatch({ eventId, onDone }) {
       await act({
         action: 'lote_criar', eventId, track: f.track, name: f.name, quantity: f.quantity, endsAt: lounge ? null : fromLocalInput(f.endsAt),
         visibility: f.visibility, accessCode: f.accessCode,
-        prices: { inteira, meia: inteira === null ? null : Math.floor(inteira / 2), casadinha: toCents(f.casadinha) },
+        prices: { inteira, meia: inteira === null || f.noMeia ? null : Math.floor(inteira / 2), casadinha: toCents(f.casadinha) },
       });
       setF(empty);
       onDone('Lote criado.');
@@ -165,9 +184,16 @@ function NewBatch({ eventId, onDone }) {
           <div className="field"><label>Código do link</label><input className="input mono" value={f.accessCode} onChange={(e) => setF({ ...f, accessCode: e.target.value.toUpperCase() })} required /></div>
         )}
       </div>
+      <label className="check mt-16">
+        <input type="checkbox" checked={f.noMeia} onChange={(e) => setF({ ...f, noMeia: e.target.checked })} />
+        Sem meia-entrada neste lote
+      </label>
+      {f.noMeia && <p className="tiny muted mt-8">{MEIA_LEI}</p>}
       <div className="row between mt-16" style={{ flexWrap: 'wrap' }}>
         <span className="tiny muted">
-          {lounge
+          {f.noMeia
+            ? (lounge ? 'O lounge fica à venda o tempo todo, junto com os lotes, e só fecha quando acabar a quantidade. Sem meia-entrada.' : 'Lote sem meia-entrada. Se a trilha já tem lote à venda, o novo entra como agendado.')
+            : lounge
             ? 'O lounge fica à venda o tempo todo, junto com os lotes, e só fecha quando acabar a quantidade. Meia entra com 50% da inteira.'
             : 'Meia entra com 50% da inteira. Se a trilha já tem lote à venda, o novo entra como agendado.'}
         </span>

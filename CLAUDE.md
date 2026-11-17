@@ -16,7 +16,7 @@ PWA para uma produtora de festas: venda de ingressos, portaria e controle do bar
 ```
 bilheteria/   Next.js 15 (App Router, JS puro) — ingressos, portaria, cupons, lotes, equipe, resultado
 bar/          Next.js 15 — PDV do bar, estoque, produtos, line-up, painel, resultado
-db/           Migrations SQL 001 a 009 (rodar em ordem) + db/testes (seeds e cenários)
+db/           Migrations SQL 001 a 010 (rodar em ordem) + db/testes (seeds e cenários)
 ```
 
 São **dois sistemas separados, dois deploys, mesmo banco** (Supabase Postgres). Arquivos compartilhados estão duplicados nas duas pastas e devem ficar idênticos: `lib/auth.js`, `lib/errors.js`, `lib/db.js`, `lib/event.js`, `lib/format.js`, `lib/money.js`, `lib/units.js`, `components/{Brand,AdminNav,AreaTag,MeContext,Icon,ThemeToggle,FestaResult}.js`, `app/{entrar,sem-acesso,resultado}/page.js`, `app/api/{login,logout}/route.js`, `app/globals.css`, `app/equipe.css`. O que muda entre os dois fica em `lib/apps.js` (APP, AREA, OTHER, ACCESS, HOME, NAV, RESULT_LINKS, LOGIN_TITLE).
@@ -36,6 +36,7 @@ São **dois sistemas separados, dois deploys, mesmo banco** (Supabase Postgres).
 - **Vitrine** (migration 007, página inicial `/` da Bilheteria): lista os eventos publicados, próximos e os que já aconteceram, com busca, e um bloco para produtores. Rascunho nunca aparece; "Tirar da vitrine" (`events.listed`) esconde o evento, mas o link direto continua vendendo. Botão "Quero vender minha festa" usa `CONTATO_COMERCIAL` (e-mail ou WhatsApp); sem ele, não aparece.
 - **Imagens do evento** (migration 008, aba Eventos): capa e galeria (até 12 fotos) enviadas pelo painel, reduzidas no navegador (1600 px, JPEG) e guardadas no banco (`event_images`, bytea, soft delete). Servidas em `/imagem/<id>` com cache longo; a capa vira `events.image_url`. A página do evento mostra a seção Fotos.
 - **Apagar lote** (migration 009, aba Lotes e preços): só lote sem venda e sem reserva em andamento. Sem pedido no histórico, sai do banco; com pedido expirado/cancelado, vira `batches.removed` e some das telas. Se estava à venda, o próximo agendado da trilha abre (sem herdar a sobra).
+- **Sem meia-entrada** (migration 010, aba Lotes e preços): caixa "Sem meia-entrada" no lote novo e na edição. `api_offer_remove` tira a oferta de meia (ou casadinha apagada) do lote; recusa (`MODALIDADE_COM_VENDAS`) se já houve pedido naquela modalidade. A tela lembra a Lei 12.933/2013 (40% de meia no evento todo).
 - **Lounge** (aba Lotes e preços, trilha `lounge`): fica à venda junto com os lotes, sem virada por data, e só fecha quando esgota a quantidade (reabre se uma reserva expirar). Não tem botão "Virar lote". Na página do evento aparece por último, com os lugares que restam.
 - **Resultado da festa** (`/resultado`, só produtor, nos dois sistemas): `api_festa_result` soma ingressos pagos + bar do mesmo evento.
 - **QR do ingresso**: assinado com Ed25519 (`TICKET_PRIVATE_KEY` / `TICKET_PUBLIC_KEY`), conferido offline na portaria.
@@ -69,7 +70,7 @@ Migração nova vai para o Supabase **antes** do merge, senão o código novo so
 
 ## Banco
 
-Supabase. Migrations em `db/001` a `db/009`. Para mudanças, crie `db/010_...sql` e aplique (Supabase SQL editor, CLI ou MCP). Evite `DELETE` em massa (deu timeout antes); prefira soft delete (ex.: `lineup.removed`).
+Supabase. Migrations em `db/001` a `db/010`. Para mudanças, crie `db/011_...sql` e aplique (Supabase SQL editor, CLI ou MCP). Evite `DELETE` em massa (deu timeout antes); prefira soft delete (ex.: `lineup.removed`).
 
 ## Pendências e riscos conhecidos
 
@@ -93,3 +94,4 @@ Supabase. Migrations em `db/001` a `db/009`. Para mudanças, crie `db/010_...sql
 7. Vitrine pública de eventos na página inicial (007).
 8. Envio de capa e galeria de fotos do evento pelo painel (008).
 9. Lounge na aba de lotes e apagar lote criado por engano (009).
+10. Lote sem meia-entrada (010).

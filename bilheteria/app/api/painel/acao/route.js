@@ -23,6 +23,11 @@ export async function POST(req) {
             await rpc('api_offer_set', { p_batch_id: b.batchId, p_variant: v, p_price_cents: price, p_actor: me.name });
           }
         }
+        for (const v of Array.isArray(b.remove) ? b.remove : []) {
+          if (v === 'meia' || v === 'casadinha') {
+            await rpc('api_offer_remove', { p_batch_id: b.batchId, p_variant: v, p_actor: me.name });
+          }
+        }
         return Response.json({ ok: true });
       }
       case 'lote_apagar': {
