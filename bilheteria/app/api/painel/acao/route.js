@@ -25,6 +25,10 @@ export async function POST(req) {
         }
         return Response.json({ ok: true });
       }
+      case 'lote_apagar': {
+        const r = await rpc('api_batch_delete', { p_batch_id: b.batchId, p_actor: me.name });
+        return Response.json({ ok: true, openedNext: !!r?.opened_next });
+      }
       case 'lote_criar': {
         const id = await rpc('api_batch_create', {
           p_event_id: b.eventId, p_track: ['promocional', 'lounge'].includes(b.track) ? b.track : 'principal',

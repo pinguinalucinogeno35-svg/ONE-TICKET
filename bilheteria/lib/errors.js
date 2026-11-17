@@ -16,6 +16,7 @@ const MESSAGES = {
   ERRO_PAGAMENTO: 'Não foi possível falar com o meio de pagamento. Tente de novo.',
   QUANTIDADE_ABAIXO_DO_VENDIDO: 'A quantidade não pode ser menor que o já vendido e reservado neste lote.',
   LOTE_NAO_ENCONTRADO: 'Lote não encontrado.',
+  LOTE_COM_VENDAS: 'Este lote já tem vendas ou reservas e não pode ser apagado. Diminua a quantidade ou deixe a virada acontecer.',
   EVENTO_NAO_ENCONTRADO: 'Evento não encontrado.',
   PRECO_INVALIDO: 'Preço inválido.',
   CODIGO_INVALIDO: 'Código do cupom: de 3 a 30 letras, números, - ou _.',

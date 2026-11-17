@@ -265,6 +265,8 @@ textarea.input { height: auto; min-height: 96px; padding: 12px 14px; line-height
 .btn-paper { background: var(--invert-bg); color: var(--invert-fg); }
 .btn-ghost { border: 1px solid var(--line-strong); }
 .btn-ghost:hover { border-color: var(--muted); }
+.btn-danger { color: var(--danger-text); }
+.btn-danger:hover { border-color: var(--danger); }
 .btn-block { width: 100%; }
 .btn-sm { height: 38px; padding: 0 14px; font-size: 13px; border-radius: 9px; }
 .error { color: var(--danger-text); font-weight: 600; font-size: 13px; }
