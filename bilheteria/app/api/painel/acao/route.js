@@ -27,10 +27,11 @@ export async function POST(req) {
       }
       case 'lote_criar': {
         const id = await rpc('api_batch_create', {
-          p_event_id: b.eventId, p_track: b.track === 'promocional' ? 'promocional' : 'principal',
+          p_event_id: b.eventId, p_track: ['promocional', 'lounge'].includes(b.track) ? b.track : 'principal',
           p_name: String(b.name || '').slice(0, 60), p_quantity: int(b.quantity),
           p_price_inteira: int(b.prices?.inteira), p_price_meia: int(b.prices?.meia), p_price_casadinha: int(b.prices?.casadinha),
-          p_ends_at: b.endsAt || null, p_visibility: b.visibility === 'link' ? 'link' : 'public', p_access_code: b.accessCode || null,
+          p_ends_at: b.track === 'lounge' ? null : b.endsAt || null, // lounge só fecha quando esgota
+          p_visibility: b.visibility === 'link' ? 'link' : 'public', p_access_code: b.accessCode || null,
         });
         return Response.json({ ok: true, id });
       }

@@ -7,7 +7,7 @@ import { brl } from '@/lib/format';
 import { toCents, fromCents, toLocalInput, fromLocalInput } from '@/lib/money';
 
 const STATUS = { active: 'À venda', scheduled: 'Agendado', sold_out: 'Esgotado', closed: 'Encerrado' };
-const TRACK = { principal: 'Lotes principais', promocional: 'Promocional', casadinha: 'Casadinha' };
+const TRACK = { principal: 'Lotes principais', promocional: 'Promocional', lounge: 'Lounge', casadinha: 'Casadinha' };
 
 async function act(payload) {
   const res = await fetch('/api/painel/acao', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
@@ -75,7 +75,9 @@ function BatchForm({ batch, onDone }) {
           <label>Quantidade (mín. {taken})</label>
           <input className="input mono" type="number" min={Math.max(taken, 1)} value={f.quantity} onChange={set('quantity')} required />
         </div>
-        <div className="field"><label>Virada por data</label><input className="input mono" type="datetime-local" value={f.endsAt} onChange={set('endsAt')} /></div>
+        {batch.track !== 'lounge' && (
+          <div className="field"><label>Virada por data</label><input className="input mono" type="datetime-local" value={f.endsAt} onChange={set('endsAt')} /></div>
+        )}
       </div>
       <div className="grid-form mt-16">
         <div className="field"><label>Inteira</label><div className="price-input"><input className="input" inputMode="decimal" value={f.inteira} onChange={set('inteira')} required /></div></div>
@@ -101,6 +103,7 @@ function NewBatch({ eventId, onDone }) {
   const [f, setF] = useState(empty);
   const [busy, setBusy] = useState(false);
   const set = (k) => (e) => setF({ ...f, [k]: e.target.value });
+  const lounge = f.track === 'lounge';
 
   async function create(e) {
     e.preventDefault();
@@ -108,7 +111,7 @@ function NewBatch({ eventId, onDone }) {
     try {
       const inteira = toCents(f.inteira);
       await act({
-        action: 'lote_criar', eventId, track: f.track, name: f.name, quantity: f.quantity, endsAt: fromLocalInput(f.endsAt),
+        action: 'lote_criar', eventId, track: f.track, name: f.name, quantity: f.quantity, endsAt: lounge ? null : fromLocalInput(f.endsAt),
         visibility: f.visibility, accessCode: f.accessCode,
         prices: { inteira, meia: inteira === null ? null : Math.floor(inteira / 2), casadinha: toCents(f.casadinha) },
       });
@@ -126,13 +129,16 @@ function NewBatch({ eventId, onDone }) {
           <select className="input" value={f.track} onChange={set('track')}>
             <option value="principal">Lotes principais</option>
             <option value="promocional">Promocional</option>
+            <option value="lounge">Lounge (à venda até esgotar)</option>
           </select>
         </div>
-        <div className="field"><label>Nome</label><input className="input" value={f.name} onChange={set('name')} placeholder="5º lote" required maxLength={60} /></div>
+        <div className="field"><label>Nome</label><input className="input" value={f.name} onChange={set('name')} placeholder={lounge ? 'Lounge' : '5º lote'} required maxLength={60} /></div>
         <div className="field"><label>Quantidade</label><input className="input mono" type="number" min="1" value={f.quantity} onChange={set('quantity')} required /></div>
         <div className="field"><label>Inteira</label><div className="price-input"><input className="input" inputMode="decimal" value={f.inteira} onChange={set('inteira')} required /></div></div>
         <div className="field"><label>Casadinha</label><div className="price-input"><input className="input" inputMode="decimal" value={f.casadinha} onChange={set('casadinha')} placeholder="opcional" /></div></div>
-        <div className="field"><label>Virada por data</label><input className="input mono" type="datetime-local" value={f.endsAt} onChange={set('endsAt')} /></div>
+        {!lounge && (
+          <div className="field"><label>Virada por data</label><input className="input mono" type="datetime-local" value={f.endsAt} onChange={set('endsAt')} /></div>
+        )}
         <div className="field"><label>Visibilidade</label>
           <select className="input" value={f.visibility} onChange={set('visibility')}>
             <option value="public">Pública</option>
@@ -144,7 +150,11 @@ function NewBatch({ eventId, onDone }) {
         )}
       </div>
       <div className="row between mt-16" style={{ flexWrap: 'wrap' }}>
-        <span className="tiny muted">Meia entra com 50% da inteira. Se a trilha já tem lote à venda, o novo entra como agendado.</span>
+        <span className="tiny muted">
+          {lounge
+            ? 'O lounge fica à venda o tempo todo, junto com os lotes, e só fecha quando acabar a quantidade. Meia entra com 50% da inteira.'
+            : 'Meia entra com 50% da inteira. Se a trilha já tem lote à venda, o novo entra como agendado.'}
+        </span>
         <button className="btn btn-accent btn-sm" disabled={busy}>{busy ? 'Criando…' : 'Criar lote'}</button>
       </div>
     </form>
@@ -155,7 +165,9 @@ export default function LotsAdmin({ data }) {
   const router = useRouter();
   const [toast, setToast] = useState(null);
   if (!data) return <main className="shell-wide"><Brand /><p>Evento não encontrado.</p></main>;
-  const tracks = [...new Set(data.batches.map((b) => b.track))];
+  const ORDER = ['principal', 'promocional', 'lounge'];
+  const tracks = [...new Set(data.batches.map((b) => b.track))]
+    .sort((x, y) => (ORDER.indexOf(x) + 1 || 9) - (ORDER.indexOf(y) + 1 || 9));
 
   function done(msg, err = false) {
     setToast({ msg, err });

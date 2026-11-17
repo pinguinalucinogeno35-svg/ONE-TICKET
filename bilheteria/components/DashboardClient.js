@@ -109,13 +109,14 @@ export default function DashboardClient({ data }) {
                       <b>{b.name}</b>
                       <span className={`status ${b.status}`}>{BATCH_STATUS[b.status]}</span>
                       {b.visibility === 'link' && <span className="status">só por link</span>}
+                      {b.track === 'lounge' && <span className="status">lounge</span>}
                     </div>
                     <span className="small">{brl(b.price_cents)}</span>
                   </div>
                   <div className={`progress ${p >= 85 ? 'hot' : ''}`} style={{ marginTop: 8 }}><i style={{ width: `${p}%` }} /></div>
                   <div className="row between mt-8">
                     <span className="tiny muted">{b.sold} vendidos · {b.reserved} reservados · {b.quantity} no lote{b.ends_at ? ` · vira ${dateShort(b.ends_at)}` : ''}</span>
-                    {b.status === 'active' && (
+                    {b.status === 'active' && b.track !== 'lounge' && (
                       <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => advance(b.track, b.name)}>Virar lote</button>
                     )}
                   </div>

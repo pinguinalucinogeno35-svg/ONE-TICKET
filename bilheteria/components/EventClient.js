@@ -20,6 +20,9 @@ function calcDiscount(subtotal, coupon) {
   return 0;
 }
 
+// Ordem na página: promocional primeiro, depois os lotes e por último o lounge
+const TRACK_ORDER = (t) => (t === 'lounge' ? 2 : t === 'principal' ? 1 : 0);
+
 const SALE_CHIP = { on_sale: 'Vendas abertas', paused: 'Vendas pausadas', closed: 'Vendas encerradas', draft: 'Prévia · rascunho' };
 const SALE_NOTE = {
   paused: ['Vendas pausadas', 'A produção pausou as vendas por enquanto. Volte mais tarde.'],
@@ -72,7 +75,7 @@ export default function EventClient({ initial, accessCode, couponCode = null, ga
   const principal = useMemo(() => event.batches.filter((b) => b.track === 'principal'), [event]);
   const activeBatches = useMemo(() => event.batches
     .filter((b) => b.status === 'active')
-    .sort((a, b) => (a.track === 'principal' ? 1 : 0) - (b.track === 'principal' ? 1 : 0)), [event]); // promo primeiro
+    .sort((a, b) => TRACK_ORDER(a.track) - TRACK_ORDER(b.track)), [event]); // promo, lotes, lounge
   const offers = useMemo(() => {
     const map = {};
     activeBatches.forEach((b) => b.offers.forEach((o) => { map[o.id] = { ...o, batch: b }; }));
@@ -224,18 +227,20 @@ export default function EventClient({ initial, accessCode, couponCode = null, ga
         const pct = Math.min(100, Math.round((b.taken / Math.max(1, b.quantity)) * 100));
         const hot = pct >= 85;
         const left = b.quantity - b.taken;
-        const isPromo = b.track !== 'principal';
+        const isLounge = b.track === 'lounge';
+        const isPromo = b.track !== 'principal' && !isLounge;
         return (
-          <section key={b.id} className={`card mt-16 ${isPromo ? 'card-accent' : ''}`}>
+          <section key={b.id} className={`card mt-16 ${isPromo || isLounge ? 'card-accent' : ''}`}>
             <div className="lot-head">
               <div>
-                <p className="eyebrow">{isPromo ? 'Liberado pelo seu link' : 'À venda agora'}</p>
+                <p className="eyebrow">{isLounge ? 'Lounge · à venda até esgotar' : isPromo ? 'Liberado pelo seu link' : 'À venda agora'}</p>
                 <p className="lot-name mt-8">{b.name}</p>
               </div>
               <span className="chip">{pct}% vendido</span>
             </div>
             <div className={`progress ${hot ? 'hot' : ''}`}><i style={{ width: `${pct}%` }} /></div>
             {hot && <span className="alert-hot">Últimos ingressos · restam {left}</span>}
+            {isLounge && !hot && <p className="tiny muted mt-8">{left} {left === 1 ? 'lugar disponível' : 'lugares disponíveis'} no lounge</p>}
             {b.ends_at && (
               <>
                 <p className="eyebrow mt-16">{isPromo ? 'Promoção acaba em' : 'Virada de lote em'}</p>
