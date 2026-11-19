@@ -224,9 +224,8 @@ export default function EventClient({ initial, accessCode, couponCode = null, ga
       )}
 
       {canBuy && activeBatches.map((b) => {
-        const pct = Math.min(100, Math.round((b.taken / Math.max(1, b.quantity)) * 100));
-        const hot = pct >= 85;
         const left = b.quantity - b.taken;
+        const hot = left <= Math.max(1, Math.ceil(b.quantity * 0.15)); // aviso de últimos, sem mostrar porcentagem
         const isLounge = b.track === 'lounge';
         const isPromo = b.track !== 'principal' && !isLounge;
         return (
@@ -236,9 +235,7 @@ export default function EventClient({ initial, accessCode, couponCode = null, ga
                 <p className="eyebrow">{isLounge ? 'Lounge · à venda até esgotar' : isPromo ? (b.visibility === 'link' ? 'Liberado pelo seu link' : 'Promoção') : 'À venda agora'}</p>
                 <p className="lot-name mt-8">{b.name}</p>
               </div>
-              <span className="chip">{pct}% vendido</span>
             </div>
-            <div className={`progress ${hot ? 'hot' : ''}`}><i style={{ width: `${pct}%` }} /></div>
             {hot && <span className="alert-hot">Últimos ingressos · restam {left}</span>}
             {isLounge && !hot && <p className="tiny muted mt-8">{left} {left === 1 ? 'lugar disponível' : 'lugares disponíveis'} no lounge</p>}
             {b.ends_at && (
@@ -248,7 +245,7 @@ export default function EventClient({ initial, accessCode, couponCode = null, ga
               </>
             )}
             <div className="mt-16">
-              {b.offers.map((o) => {
+              {b.offers.filter((o) => o.variant !== 'meia' || event.half_available > 0).map((o) => {
                 const q = cart[o.id] || 0;
                 const full = o.price_cents;
                 const pairSaving = o.variant === 'casadinha'
@@ -281,13 +278,14 @@ export default function EventClient({ initial, accessCode, couponCode = null, ga
           <h2 className="section-title">Lotes</h2>
           <div className="lots">
             {principal.map((b) => {
-              const inteira = b.offers.find((o) => o.variant === 'inteira');
+              // Próximo lote (agendado) não mostra preço para o comprador
+              const inteira = b.status === 'scheduled' ? null : b.offers.find((o) => o.variant === 'inteira');
               const cls = b.status === 'active' ? 'on' : b.status === 'scheduled' ? '' : 'off';
-              const label = b.status === 'active' ? 'à venda' : b.status === 'scheduled' ? 'em breve' : 'encerrado';
+              const label = b.status === 'active' ? 'à venda' : b.status === 'scheduled' ? 'próximo' : 'encerrado';
               return (
                 <div key={b.id} className={`lot-pill ${cls}`}>
                   <small>{b.position}º lote</small>
-                  <b>{inteira ? brl(inteira.price_cents).replace(',00', '') : '-'}</b>
+                  <b>{inteira ? brl(inteira.price_cents).replace(',00', '') : b.status === 'scheduled' ? 'Em breve' : '-'}</b>
                   <small>{label}</small>
                 </div>
               );
