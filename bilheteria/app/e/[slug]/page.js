@@ -3,6 +3,7 @@ import { rpc } from '@/lib/db';
 import { getMe } from '@/lib/auth';
 import { ACCESS } from '@/lib/apps';
 import EventClient from '@/components/EventClient';
+import { publicEvent } from '@/lib/public-event';
 
 export const dynamic = 'force-dynamic';
 
@@ -35,5 +36,5 @@ export default async function EventPage({ params, searchParams }) {
   }
   const images = await rpc('api_event_images', { p_event_id: event.id }).catch(() => []);
   const gallery = Array.isArray(images) ? images.filter((i) => i.kind === 'gallery') : [];
-  return <EventClient initial={event} accessCode={code} couponCode={coupon} gallery={gallery} />;
+  return <EventClient initial={publicEvent(event)} accessCode={code} couponCode={coupon} gallery={gallery} />;
 }
