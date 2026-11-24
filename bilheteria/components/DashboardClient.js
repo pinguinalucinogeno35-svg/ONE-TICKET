@@ -37,6 +37,23 @@ export default function DashboardClient({ data }) {
     router.refresh();
   }
 
+  async function revert(track, cur, prev) {
+    if (!confirm(`Voltar para o ${prev}? O ${cur} sai de venda e volta a agendado (o que já foi vendido nele continua valendo).`)) return;
+    setBusy(true);
+    const r = await fetch('/api/painel/voltar', {
+      method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ eventId: e.id, track }),
+    });
+    const j = await r.json().catch(() => ({}));
+    setBusy(false);
+    if (!r.ok) alert(j.message || 'Não foi possível voltar o lote.');
+    router.refresh();
+  }
+
+  // Lote anterior da trilha que foi fechado (não esgotado): candidato a "Voltar lote"
+  const prevClosed = (b) => batches
+    .filter((x) => x.track === b.track && x.position < b.position && x.status === 'closed')
+    .sort((x, y) => y.position - x.position)[0];
+
   function copy(text, label) {
     navigator.clipboard?.writeText(text);
     setCopied(label);
@@ -117,7 +134,12 @@ export default function DashboardClient({ data }) {
                   <div className="row between mt-8">
                     <span className="tiny muted">{b.sold} vendidos · {b.reserved} reservados · {b.quantity} no lote{b.ends_at ? ` · vira ${dateShort(b.ends_at)}` : ''}</span>
                     {b.status === 'active' && b.track !== 'lounge' && (
-                      <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => advance(b.track, b.name)}>Virar lote</button>
+                      <div className="row">
+                        {prevClosed(b) && (
+                          <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => revert(b.track, b.name, prevClosed(b).name)}>Voltar lote</button>
+                        )}
+                        <button className="btn btn-ghost btn-sm" disabled={busy} onClick={() => advance(b.track, b.name)}>Virar lote</button>
+                      </div>
                     )}
                   </div>
                 </div>

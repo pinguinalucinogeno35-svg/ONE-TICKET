@@ -16,7 +16,7 @@ PWA para uma produtora de festas: venda de ingressos, portaria e controle do bar
 ```
 bilheteria/   Next.js 15 (App Router, JS puro) — ingressos, portaria, cupons, lotes, equipe, resultado
 bar/          Next.js 15 — PDV do bar, estoque, produtos, line-up, painel, resultado
-db/           Migrations SQL 001 a 011 (rodar em ordem) + db/testes (seeds e cenários)
+db/           Migrations SQL 001 a 012 (rodar em ordem) + db/testes (seeds e cenários)
 ```
 
 São **dois sistemas separados, dois deploys, mesmo banco** (Supabase Postgres). Arquivos compartilhados estão duplicados nas duas pastas e devem ficar idênticos: `lib/auth.js`, `lib/errors.js`, `lib/db.js`, `lib/event.js`, `lib/format.js`, `lib/money.js`, `lib/units.js`, `components/{Brand,AdminNav,AreaTag,MeContext,Icon,ThemeToggle,FestaResult}.js`, `app/{entrar,sem-acesso,resultado}/page.js`, `app/api/{login,logout}/route.js`, `app/globals.css`, `app/equipe.css`. O que muda entre os dois fica em `lib/apps.js` (APP, AREA, OTHER, ACCESS, HOME, NAV, RESULT_LINKS, LOGIN_TITLE).
@@ -36,6 +36,7 @@ São **dois sistemas separados, dois deploys, mesmo banco** (Supabase Postgres).
 - **Vitrine** (migration 007, página inicial `/` da Bilheteria): lista os eventos publicados, próximos e os que já aconteceram, com busca, e um bloco para produtores. Rascunho nunca aparece; "Tirar da vitrine" (`events.listed`) esconde o evento, mas o link direto continua vendendo. Botão "Quero vender minha festa" usa `CONTATO_COMERCIAL` (e-mail ou WhatsApp); sem ele, não aparece.
 - **Imagens do evento** (migration 008, aba Eventos): capa e galeria (até 12 fotos) enviadas pelo painel, reduzidas no navegador (1600 px, JPEG) e guardadas no banco (`event_images`, bytea, soft delete). Servidas em `/imagem/<id>` com cache longo; a capa vira `events.image_url`. A página do evento mostra a seção Fotos.
 - **Apagar lote** (migrations 009 e 011, aba Lotes e preços): bloqueia só se houver reserva em andamento. Sem pedido no histórico, sai do banco; com venda (ou pedido expirado/cancelado), vira `batches.removed` e some das telas, mas os ingressos vendidos continuam valendo e contam no faturamento. Se estava à venda, o próximo agendado da trilha abre (sem herdar a sobra).
+- **Voltar lote** (migration 012, painel `/painel`, ao lado de "Virar lote"): desfaz a última virada da trilha usando o registro `batch_advanced` do `audit_log`. O lote à venda volta a agendado (vendas dele continuam valendo), o anterior reabre e a sobra que migrou volta. Recusa com reserva em andamento no lote atual, lote anterior esgotado/apagado ou data de virada do anterior já vencida. Dá para voltar mais de uma vez (desfaz viradas em sequência).
 - **Lounge** (aba Lotes e preços, trilha `lounge`): fica à venda junto com os lotes, sem virada por data, e só fecha quando esgota a quantidade (reabre se uma reserva expirar). Não tem botão "Virar lote". Na página do evento aparece por último, com os lugares que restam.
 - **Resultado da festa** (`/resultado`, só produtor, nos dois sistemas): `api_festa_result` soma ingressos pagos + bar do mesmo evento.
 - **QR do ingresso**: assinado com Ed25519 (`TICKET_PRIVATE_KEY` / `TICKET_PUBLIC_KEY`), conferido offline na portaria.
@@ -69,7 +70,7 @@ Migração nova vai para o Supabase **antes** do merge, senão o código novo so
 
 ## Banco
 
-Supabase. Migrations em `db/001` a `db/011`. Para mudanças, crie `db/012_...sql` e aplique (Supabase SQL editor, CLI ou MCP). Evite `DELETE` em massa (deu timeout antes); prefira soft delete (ex.: `lineup.removed`).
+Supabase. Migrations em `db/001` a `db/012`. Para mudanças, crie `db/013_...sql` e aplique (Supabase SQL editor, CLI ou MCP). Evite `DELETE` em massa (deu timeout antes); prefira soft delete (ex.: `lineup.removed`).
 
 ## Pendências e riscos conhecidos
 
@@ -94,3 +95,4 @@ Supabase. Migrations em `db/001` a `db/011`. Para mudanças, crie `db/012_...sql
 8. Envio de capa e galeria de fotos do evento pelo painel (008).
 9. Lounge na aba de lotes e apagar lote criado por engano (009).
 11. Apagar lote mesmo com vendas, mantendo os ingressos válidos (011; a 010 é a do lote sem meia-entrada).
+12. Voltar lote virado sem querer (012).
